@@ -1,4 +1,4 @@
-module github.com/JhimmieC137/orders-api.git
+module github.com/JhimmieC137/orders-api
 
 go 1.22.3
 

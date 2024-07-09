@@ -66,7 +66,7 @@ func (r *RedisRepo) FindByID(ctx context.Context, id uint64) (model.Order, error
 		return model.Order{}, fmt.Errorf("failed to decode order json: %w", err)
 	}
 
-	return order, redis.Nil
+	return order, nil
 }
 
 func (r *RedisRepo) DeleteByID(ctx context.Context, id uint64) error {
@@ -88,6 +88,10 @@ func (r *RedisRepo) DeleteByID(ctx context.Context, id uint64) error {
 		return fmt.Errorf("failed to exec: %w", err)
 	}
 
+	if _, err := txn.Exec(ctx); err != nil {
+		return fmt.Errorf("failed to exc: %w", err)
+	}
+
 	return nil
 }
 
@@ -99,7 +103,7 @@ func (r *RedisRepo) Update(ctx context.Context, order model.Order) error {
 
 	key := orderIDKey(order.OrderID)
 
-	err = r.Client.SetNX(ctx, key, string(data), 0).Err()
+	err = r.Client.SetXX(ctx, key, string(data), 0).Err()
 	if errors.Is(err, redis.Nil) {
 		return ErrNotExists
 	} else if err != nil {
